@@ -9,9 +9,9 @@ from functools import partial
 from tqdm import tqdm
 tqdm = partial(tqdm, position=0, leave=True)
 
-def _get_knn_entropy(x: np.array, 
+def _get_knn_entropy(x: np.array,
                  num_neighbors: Optional[int]=3,
-                 metric: Optional[str]='chebyshev', 
+                 metric: Optional[str]='chebyshev',
                  min_dist: Optional[float]=0.) -> float:
     """
     Estimates the entropy H of a random variable x (in nats) based on
@@ -36,7 +36,7 @@ def _get_knn_entropy(x: np.array,
     .. [1] Kozachenko, L., & Leonenko, N. (1987). Sample estimate of the entropy of a random vector. 
            Problemy Peredachi Informatsii, 23(2), 9–16.
     """
-    
+
     log = np.log   # i.e. information measures are in nats
     n, d = x.shape
 
@@ -48,7 +48,7 @@ def _get_knn_entropy(x: np.array,
         log_c_d = (d/2.) * log(np.pi) - log(gamma(d/2. +1))
     else:
         raise NotImplementedError("Variable 'metric' either 'chebyshev' or 'minkowski'")
-    
+
     kdtree = KDTree(x, metric=metric)
 
     # query all points -- k+1 as query point also in initial set
@@ -63,7 +63,7 @@ def _get_knn_entropy(x: np.array,
 
     return h
 
-def _get_binned_entropy(x: np.array, num_bins: Optional[int]=10, 
+def _get_binned_entropy(x: np.array, num_bins: Optional[int]=10,
                         bin_edges: Optional[np.array]=None) -> float:
     """
     Compute entropy by discretizing the given continuous random variables.
@@ -87,8 +87,8 @@ def _get_binned_entropy(x: np.array, num_bins: Optional[int]=10,
     if x.shape[1] == 2:
         x_1, x_2 = x[:, 0], x[:, 1]
         if bin_edges is None:
-            _, bin_edges = np.histogram2d(x_1, x_2, bins=num_bins)
-        bin_edges_1, bin_edges_2 = bin_edges
+            _, bin_edges_1, bin_edges_2 = np.histogram2d(x_1, x_2, bins=num_bins)
+        # bin_edges_1, bin_edges_2 = bin_edges
         binned_x_1, binned_x_2 = np.digitize(x_1, bin_edges_1), np.digitize(x_1, bin_edges_2)
         clusters, num_c = {}, 0
         for i in np.unique(binned_x_1):
@@ -119,7 +119,7 @@ def _get_binned_entropy(x: np.array, num_bins: Optional[int]=10,
 
 def get_all_entropies(reps: np.array,
                       method: Optional[str] = "binned",
-                      num_neighbors: Optional[int] = 10, 
+                      num_neighbors: Optional[int] = 10,
                       to_tqdm: Optional[bool] = True,
                       global_binning: Optional[bool] = True) -> np.array:
     """
@@ -157,14 +157,14 @@ def get_all_entropies(reps: np.array,
     else:
         for i in range(num_vars):
             if method=="binned":
-                h = _get_binned_entropy(reps[:, i].reshape(-1, 1), 
+                h = _get_binned_entropy(reps[:, i].reshape(-1, 1),
                                         num_bins=num_neighbors,
                                         bin_edges=bin_edges if global_binning else None)
             else:
                 h = _get_knn_entropy(reps[:, i].reshape(-1, 1), num_neighbors)
             # h = h.astype('float64')
             entropies[i] = h
-    
+
     return entropies
 
 def _get_knn_mi(x: np.array, y: np.array, n_neighbors: int, clip_negative: Optional[bool] = False) -> float:
@@ -206,25 +206,25 @@ def _get_knn_mi(x: np.array, y: np.array, n_neighbors: int, clip_negative: Optio
     # dist(z2, z1) = max(||x2-x1||, ||y2-y1||)
     # the same metric is used for x and y, i.e., simply
     # dist(x2, x1) = (x2 - x1), when x is 1-dimensional
-    
+
     nn.fit(xy)                              # fitting KNN on joint z = (x, y)
-    radius = nn.kneighbors()[0]             # kneighbors() returns (distances, neighbors) 
+    radius = nn.kneighbors()[0]             # kneighbors() returns (distances, neighbors)
                                             # for all samples -> (2, n_samples, n_neighbors)
-                                            # we only use the distances as the query radii 
+                                            # we only use the distances as the query radii
     radius = np.nextafter(radius[:, -1], 0)
 
     # KDTree is explicitly fit to allow for the querying of number of
     # neighbors within a specified radius
     kd = KDTree(x, metric="chebyshev")
-    nx = kd.query_radius(x, radius, 
-                         count_only=True, 
+    nx = kd.query_radius(x, radius,
+                         count_only=True,
                          return_distance=False) # number of points in x that are within the query radius
                                                 # -> (n_samples)
     nx = np.array(nx) - 1.0                     # (nx-1)
 
     kd = KDTree(y, metric="chebyshev")
-    ny = kd.query_radius(y, radius, 
-                         count_only=True, 
+    ny = kd.query_radius(y, radius,
+                         count_only=True,
                          return_distance=False) # number of points in y that are within the query radius
                                                 # -> (n_samples)
     ny = np.array(ny) - 1.0                     # (ny -1)
@@ -235,12 +235,12 @@ def _get_knn_mi(x: np.array, y: np.array, n_neighbors: int, clip_negative: Optio
         - np.mean(digamma(nx + 1))
         - np.mean(digamma(ny + 1))
     )                               # I(X; Y) = ψ(S) + ψ(k) - 1/N*sum(ψ(nx) + ψ(ny))
-    
+
     if clip_negative:
         return max(0, mi)
     return mi
 
-def _get_binned_mi(x: np.array, y: np.array, num_bins: int, 
+def _get_binned_mi(x: np.array, y: np.array, num_bins: int,
                    clip_negative: Optional[bool] = False) -> float:
     n_samples = x.size
 
@@ -251,7 +251,7 @@ def _get_binned_mi(x: np.array, y: np.array, num_bins: int,
     mi = _get_binned_entropy(x, num_bins) \
         + _get_binned_entropy(y, num_bins) \
         - _get_binned_entropy(xy, num_bins)
-    
+
     if clip_negative:
         return max(0, mi)
     return mi
@@ -280,7 +280,7 @@ def _get_mi(X: np.array, y: np.array, method: Optional[str] = "knn", num_neighbo
 
         for i in columns:
             yield X[:, i]
-    
+
     assert method in ["knn", "binned"]
     mis = [
         _get_knn_mi(x, y, num_neighbors) if method=="knn" else _get_binned_mi(x, y, num_neighbors)
@@ -289,7 +289,7 @@ def _get_mi(X: np.array, y: np.array, method: Optional[str] = "knn", num_neighbo
 
     return np.array(mis)
 
-def get_knn_intra_mi(reps: np.array, 
+def get_knn_intra_mi(reps: np.array,
                      norm: Optional[bool] = True,
                      to_tqdm: Optional[bool] = False) -> List[List[int]]:
     """
@@ -322,11 +322,11 @@ def get_knn_intra_mi(reps: np.array,
             if norm:
                 mi /= (np.max(mi)+1e-4)
             mis.append(mi)
-            
+
     return mis
 
-def get_knn_inter_mi(reps1: np.array, reps2: np.array, 
-                     norm: Optional[bool] = True, 
+def get_knn_inter_mi(reps1: np.array, reps2: np.array,
+                     norm: Optional[bool] = True,
                      to_tqdm: Optional[bool] = False) -> List[List[float]]:
     """
     Get num_neurons*num_neurons (N*N) sized matrix, each value representing the 
@@ -358,10 +358,10 @@ def get_knn_inter_mi(reps1: np.array, reps2: np.array,
             if norm:
                 mi /= (np.max(mi)+1e-4)
             mis.append(mi)
-    
+
     return mis
 
-def get_square_mi(reps: np.array, 
+def get_square_mi(reps: np.array,
                   num_neighbors: Optional[int]=3,
                   to_tqdm: Optional[bool] = True,
                   method: Optional[str] = "knn") -> np.array:
@@ -383,14 +383,14 @@ def get_square_mi(reps: np.array,
     mis = np.zeros((num_vars, num_vars))
     if to_tqdm:
         for i in tqdm(range(num_vars)):
-            mi = _get_mi(reps[:, i:], reps[:, i].reshape(-1,), 
+            mi = _get_mi(reps[:, i:], reps[:, i].reshape(-1,),
                          method, num_neighbors)
             mi = mi.astype('float64')
             mis[i, i:] = mi
             mis[i:, i] = mi
     else:
         for i in range(num_vars):
-            mi = _get_mi(reps[:, i:], reps[:, i].reshape(-1,), 
+            mi = _get_mi(reps[:, i:], reps[:, i].reshape(-1,),
                          method, num_neighbors)
             mi = mi.astype('float64')
             mis[i, i:] = mi
@@ -399,3 +399,25 @@ def get_square_mi(reps: np.array,
     #     mis[i] /= np.max(mis[i])
 
     return mis
+
+def test_easy_entropy():
+    data = np.random.normal(size=(10000, 2))
+    ent1 = _get_binned_entropy(x=data)
+    ent2 = _get_knn_entropy(x=data, num_neighbors=3)
+    standard_entropy = 0.5 * np.log((2 * np.pi * np.e) ** 2)
+    print("normal_ent_by_binned", ent1, "normal_ent_by_knn", ent2, "standard_entropy", standard_entropy)
+
+def test_easy_mi():
+    x = np.random.normal(size=(100, 1), loc=(0,))
+    y = np.random.normal(size=(100, 1),loc=(1,))
+    ent_x = _get_knn_entropy(x=x)
+    ent_y = _get_knn_entropy(x=y)
+    ent_xy = _get_knn_entropy(x=np.concatenate([x,y],axis=1))
+    standard_mi = ent_x + ent_y - ent_xy
+    mi = _get_knn_mi(x, y, n_neighbors=3)
+    print("entropy_x", ent_x, "entropy_y", ent_y, "entropy_xy", ent_xy)
+    print("standard_mi", standard_mi, "mi", mi)
+
+if __name__ == "__main__":
+    test_easy_entropy()
+    test_easy_mi()
