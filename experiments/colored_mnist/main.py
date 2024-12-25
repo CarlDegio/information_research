@@ -142,7 +142,7 @@ def train_linear():
 	print("Seed", seed)
 	set_seed(seed)
 
-	save_dir = f'models/{flags.mode}/ratio={flags.ratio:.3f}_l2-reg={flags.l2_regularizer_weight:.3f}_penalty-wt={flags.penalty_weight:.3f}/seed={seed}/model={model_conf}/'
+	save_dir = f'models/{flags.mode}/dataset={flags.dataset}_ratio={flags.ratio:.3f}_l2-reg={flags.l2_regularizer_weight:.3f}_penalty-wt={flags.penalty_weight:.3f}/seed={seed}/model={model_conf}/'
 	os.makedirs(save_dir, exist_ok=True)
 
 	# get data environments

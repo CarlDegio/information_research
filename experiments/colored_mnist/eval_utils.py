@@ -25,7 +25,7 @@ def get_model(model_dir, hidden_dim, grayscale_model: bool = False, mode: str = 
     elif checkpoint_type=="best":
         model_path = model_dir + f"best.pt"
     model = MLP(hidden_dim, grayscale_model, mode, num_layers).to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_path, weights_only=True, map_location=device))
     return model
 
 def get_performance(train_env, val_env, model, dir: str = None, mode: str = "colored"):

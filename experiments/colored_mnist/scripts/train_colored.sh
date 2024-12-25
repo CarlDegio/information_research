@@ -7,6 +7,7 @@ n_seeds=${3:-10}
 for ratio in 0.00 0.125 0.250 0.375 0.500; do
     echo "Ratio $ratio"
     python -u main.py \
+    --dataset="mnist" \
     --mode="colored" \
     --model_type=$model \
     --hidden_dim=256 \
@@ -19,7 +20,7 @@ for ratio in 0.00 0.125 0.250 0.375 0.500; do
     --early_stopping \
     --ratio=$ratio \
     --save_models \
-    --n_restarts=$n_seeds \
+    --seed=$n_seeds \
     --check_performance \
     --num_layers $num_layers \
     --get_entropy # \
