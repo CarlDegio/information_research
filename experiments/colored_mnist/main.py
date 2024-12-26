@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl
 import wandb
 
-from eval_utils import get_model, get_reps, get_entropy, get_mi, get_performance
+from eval_utils import get_model, get_reps, get_entropy, get_mi, get_performance, plot_square, plot_mean
 from train_utils import MLP, ResNetMNIST, ResNetCIFAR, mean_nll, mean_accuracy, penalty, prepare_data
 
 import sys
@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(description='Colored MNIST')
 parser.add_argument('--mode', type=str, choices=["colored", "shuffled"])
 parser.add_argument('--model_type', type=str, choices=["linear", "resnet"])
 parser.add_argument('--dataset', type=str, choices=["mnist", "cifar100"])
-parser.add_argument('--eval_model_type', type=str, default="last")
+parser.add_argument('--eval_model_type', type=str, default="best")
 parser.add_argument('--hidden_dim', type=int, default=256)
 parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--l2_regularizer_weight', type=float,default=0.001)
@@ -247,6 +247,8 @@ def eval_linear():
 		entropy = get_entropy(flags, reps, dir, num_bins=100)
 	if flags.get_mi:
 		sq_mis = get_mi(flags, reps, dir)
+		# plot_square(sq_mis, dir)
+		# plot_mean(sq_mis, dir)
 
 	print("Done!")
 

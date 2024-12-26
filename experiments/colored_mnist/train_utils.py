@@ -39,7 +39,7 @@ def make_colored_environment(images, labels, e, dataset):
     images = images.reshape((-1, 28, 28))[:, ::2, ::2]
     # Assign a binary label based on the digit; flip label with probability 0.25
     labels = (labels < 5).float()
-    labels = torch_xor(labels, torch_bernoulli(0.25, len(labels)))
+    # labels = torch_xor(labels, torch_bernoulli(0.25, len(labels))) # CHANGE: no flip
     # Assign a color based on the label; flip the color with probability e
     colors = torch_xor(labels, torch_bernoulli(e, len(labels)))
     # Apply the color to the image by zeroing out the other color channel
